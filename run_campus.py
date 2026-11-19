@@ -22,7 +22,15 @@ def build_graph(connector_groups: Dict[str, List[str]]) -> Dict[str, List[str]]:
     buildings in the same connector group is connected by an edge (undirected).
     """
     # TODO
-    raise NotImplementedError
+    graph: Graph = {}
+    for _group_name, buildings in connector_groups.items():
+        for building in buildings:
+            graph.setdefault(building, [])
+        for a in buildings:
+            for b in buildings:
+                if a != b and b not in graph[a]:
+                    graph[a].append(b)
+    return graph
 
 
 def has_path(graph: Dict[str, List[str]], start: str, target: str, visited: Optional[Set[str]] = None) -> bool:
@@ -32,7 +40,19 @@ def has_path(graph: Dict[str, List[str]], start: str, target: str, visited: Opti
     Must handle start == target, and a fully exhausted search.
     """
     # TODO
-    raise NotImplementedError
+    if visited is None:
+        visited = set()
+
+    if start == target:
+        return True
+
+    visited.add(start)
+    for neighbor in graph.get(start, []):
+        if neighbor not in visited:
+            if has_path(graph, neighbor, target, visited):
+                return True
+    
+    return False
 
 
 def bfs_shortest_path(graph: Dict[str, List[str]], start: str, target: str) -> Optional[List[str]]:
@@ -48,8 +68,26 @@ def bfs_shortest_path(graph: Dict[str, List[str]], start: str, target: str) -> O
     # version of the same problem" one, so a loop over an explicit
     # queue is the natural fit here rather than recursion.
     # TODO
-    raise NotImplementedError
+    if start == target:
+        return [start]
+    
+    parent: Dict[str, Optional[str]] = {start: None}
+    queue = deque([start])
 
+    while queue:
+        current = queue.popleft()
+        for neighbor in graph.get(current, []):
+            if neighbor not in parent:
+                parent[neighbor] = current
+                if neighbor == target:
+                    route = [neighbor]
+                    while parent[route[-1]] is not None:
+                        route.append(parent[route[-1]])
+                    route.reverse()
+                    return route
+                queue.append(neighbor)
+
+    return None  
 
 # ============================== VERIFICATION SUITE ==============================
 # Do not edit below this line.
